@@ -101,43 +101,49 @@
 
      }
 
-     /**
-     	*Loads events into an array()
-     	*
-     	*@param int $id an optional event id
-     	*@return array an array of events from the database
-     	*/
-     	private function _loadEvents($id=NULL)
-     	{
-     		$sql = "SELECT 
+     /** 
+     * Loads event(s) info into an array 
+     * 
+     * @param int $id an optional event ID to filter results 
+     * @return array an array of events from the database 
+     */ 
+    private function _loadEventData($id=NULL) 
+    { 
+        $sql = "SELECT 
                     `event_id`, `event_title`, `event_desc`, 
                     `event_start`, `event_end` 
-                FROM `events`";
-
-                    /**
-                    *if an event id is provided
-                    */
-                    if(!empty($id)){
-                    	$sql.=" WHERE `events_id` = ".$id." LIMIT 1";
-                    }
-                    else
-                    {
-                    	/**
-                    	*find the first and last day of the month
-                    	*/
-                    	$start_ts = mktime(0, 0, 0, $this->_m, 1, $this->_y);
-                    	$end_ts = mktime(23, 59, 59, $this->_m+1, 0, $this->_y);
-                    	$start_date = date('Y-m-d H:i:s', $start_ts);
-                    	$end_date = date('y-m-d H:i:s', $end_ts);
-
-                    	/**
-                    	*Filter events in between end and start date
-                    	*/
-                    	$sql .= "WHERE `event_start` BETWEEN '$start_date' AND '$end_date' ORDER BY `event_start`";
-                    }
-
-            try
-            { 
+                FROM `events`"; 
+        /* 
+         * If an event ID is supplied, add a WHERE clause 
+         * so only that event is returned 
+         */ 
+        if( !empty($id) ) 
+        { 
+            $sql .= "WHERE `event_id`=:id LIMIT 1"; 
+        } 
+        /* 
+         * Otherwise, load all events for the month in use 
+         */ 
+        else 
+        { 
+            /* 
+             * Find the first and last days of the month 
+             */ 
+            $start_ts = mktime(0, 0, 0, $this->_m, 1, $this->_y); 
+            $end_ts = mktime(23, 59, 59, $this->_m+1, 0, $this->_y); 
+            $start_date = date('Y-m-d H:i:s', $start_ts); 
+            $end_date = date('Y-m-d H:i:s', $end_ts); 
+            /* 
+             * Filter events to only those happening in the 
+             * currently selected month 
+             */ 
+            $sql .= "WHERE `event_start` 
+                        BETWEEN '$start_date' 
+                        AND '$end_date' 
+                    ORDER BY `event_start`"; 
+        } 
+        try 
+        { 
             $stmt = $this->db->prepare($sql); 
             /* 
              * Bind the parameter if an ID was passed 
@@ -155,7 +161,56 @@
         { 
             die ( $e->getMessage() ); 
         } 
-    } 
-}
+    }
+
+    /**
+    *Loads all events for the month into an array
+    *
+    *@return array events info
+    */
+    private function _createEventObj()
+    {
+    	/**
+    	*load the events array
+    	*/
+    	$arr = $this->_loadEventData();
+
+    	/**
+    	*Create a new array and organise events by the day of month
+    	*/
+    	$events = array();
+    	foreach ($arr as $event){
+    		$day = date('j', strtotime($event['event_start']));
+    		try
+    		{
+    			$events[$day][] = new Event($event);
+    		}
+    		catch(Exception $e){
+    			di($e->getMessage());
+    		}
+    		return $events;
+    	}
+    }
+
+    /**
+    *return html markup to display the calendar and events
+    */
+    public function buildCalendar()
+    {
+    	/**
+    	*Determine the calendar month and create an array of 
+    	*/
+    	$cal_month = date('F y', strtotime($this->_useDate));
+    	$weekdays = array('Sun', 'Mon', 'Tue', 'Wed', 'Thurs', 'Fri', 'Sat');
+    	$html = "<h2>". $cal_month. "</h2>";
+    	for ($d = 0; $labels = NULL, $d<7; $d++){
+    		$labels .= "\n\t<li>".$weekdays[$d]."</li>";
+    	}
+    	$html .= "\n\t<ul class=\"weekdays\">".$labels."\n\t</ul>";
+    	return $html;
+
+    }
+    
+  } 
 
 ?>
