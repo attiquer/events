@@ -200,17 +200,90 @@
     	/**
     	*Determine the calendar month and create an array of 
     	*/
-    	$cal_month = date('F y', strtotime($this->_useDate));
+    	$cal_month = date('F Y', strtotime($this->_useDate));
     	$weekdays = array('Sun', 'Mon', 'Tue', 'Wed', 'Thurs', 'Fri', 'Sat');
-    	$html = "<h2>". $cal_month. "</h2>";
-    	for ($d = 0; $labels = NULL, $d<7; $d++){
+    	$html = "\n\t<h2>$cal_month</h2>";
+    	for ($d = 0, $labels=NULL; $d<7; ++$d){
     		$labels .= "\n\t<li>".$weekdays[$d]."</li>";
     	}
     	$html .= "\n\t<ul class=\"weekdays\">".$labels."\n\t</ul>";
+
+    	/**
+    	*Load Events Data
+    	*/
+    	$vents = $this->_createEventObj();
+
+    	/**
+    	*Create the calendar markup
+    	*/
+    	$html .= "\n\t<ul>";
+    	for($i=1, $c=1, $t = date('j'), $m = date('m'), $y = date('Y');
+    		$c <= $this->_daysInMonth; ++$i)
+    	{
+    		/**
+    		*Apply a fill class to the boxes occured before today
+    		*/
+    		$class = $i<$this->_startDay ? "fill" : NULL;
+    		/**
+    		*Apply today class if event occured today
+    		*/
+    		if($c == $t && $m == $this->_m && $y == $this->_y)
+    		{
+    			$class = "today";
+    		}
+
+    		/**
+    		*Build the opening and closing list item tags
+    		*/
+    		$ls = sprintf("\n\t\t<li class=\"%s\">", $class); 
+            $le = "\n\t\t</li>";
+            /* 
+             * Add the day of the month to identify the calendar box 
+             */ 
+            if ( $this->_startDay<$i && $this->_daysInMonth>=$c) 
+            { 
+            	/**
+            	*Format Events Data
+            	*/
+            	$event_info = NULL;
+            	 if (isset($events[$c]) ) 
+                { 
+                    foreach ( $events[$c] as $event ) 
+                    { 
+                        $link = '<a href="view.php?event_id=' 
+                                . $event->id . '">' . $event->title 
+                                . '</a>'; 
+                        $event_info .= "\n\t\t\t$link"; 
+                    } 
+                } 
+                $date = sprintf("\n\t\t\t<strong>%02d</strong>",$c++); 
+            } 
+            else { $date="&nbsp;"; } 
+            /* 
+             * If the current day is a Saturday, wrap to the next row 
+             */ 
+            $wrap = $i!=0 && $i%7==0 ? "\n\t</ul>\n\t<ul>" : NULL;
+                        /* 
+             * Assemble the pieces into a finished item 
+             */ 
+            $html .= $ls . $date . $event_info . $le . $wrap; 
+        } 
+        /* 
+         * Add filler to finish out the last week 
+         */ 
+        while ( $i%7!=1 ) 
+        { 
+            $html .= "\n\t\t<li class=\"fill\">&nbsp;</li>"; 
+            ++$i; 
+        } 
+        /* 
+         * Close the final unordered list 
+         */ 
+        $html .= "\n\t</ul>\n\n";
+
     	return $html;
 
     }
-    
-  } 
+    }
 
 ?>
