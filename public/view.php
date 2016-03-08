@@ -10,7 +10,7 @@ if(isset($_GET['event_id']))
 	*If id is invalid send user to home page
 	*/
 	if(empty($id)){
-		header(location: ./);
+		header('Location: ./');
 		exit;
 	}
 }
@@ -18,7 +18,7 @@ else {
 	/**
 	*send the user to the main page if no id is supplied
 	*/
-	header(location: ./);
+	header('Location: ./');
 	exit;
 }
 
@@ -32,7 +32,7 @@ include_once('../sys/core/init.inc.php');
 */
 $page_title = "View Calendar";
 $css_files = array("styles.css");
-include_once('assets/common/footer.inc.php');
+include_once('assets/common/header.inc.php');
 
 /**
 *load the calendar
@@ -47,5 +47,5 @@ $cal = new Calendar($dbo);
 </div>
 
 <div id="footer">
-<?php include_once('assets/common/footer.onc.php'); ?>
+<?php include_once('assets/common/footer.inc.php'); ?>
 </div>

@@ -99,15 +99,14 @@
      	$ts = mktime(0, 0, 0, $this->_m, 1, $this->_y);
      	$this->_startDay = date("w", $ts);
 
-     }
-
-     
+     }     
 
     /**
     *return html markup to display the calendar and events
     */ 
     public function buildCalendar() 
     { 
+    	$event_info = NULL;
         /* 
          * Determine the calendar month and create an array of 
          * weekday abbreviations to label the calendar columns 
@@ -201,8 +200,109 @@
          * Return the markup for output 
          */ 
         return $html; 
-    } 
+    } //build calendar ends
 
+        	public function displayEvent($id){
+    		/**
+    		*check if empty return null
+    		*/
+    		if(empty($id)){
+    			return NULL;
+    		}
+    		/**
+    		*Make sure the id is integer
+    		*/
+    		$id = preg_replace('/[^0-9]/', '', $id);
+
+    		/**
+    		*Load the event data
+    		*/
+    		$event = $this->_loadEventById($id);
+
+    		/**
+    		*Generate string for the date start and end time
+    		*/
+    		$ts = strtotime($event->start);
+    		$date = date('F, d, Y', $ts);
+    		$start = date('g:ia', $ts);
+    		$end = date('g:ia', strtotime($event->end));
+
+    		/**
+    		*Generate and return the markeup
+    		*/
+
+    		$html = "<h2>$event->title</h2>";
+    		$html .= "\n\t<p class=\"dates\"> $date, $start &dash;$end</p>";
+    		$html .= "\n\t<p>$event->description</p>";
+    		return $html;
+
+    	} //display event ends
+
+        /** 
+     * Generates a form to edit or create events 
+     * 
+     * @return string the HTML markup for the editing form 
+     */ 
+    public function displayForm() 
+    { 
+        /* 
+         * Check if an ID was passed 
+         */ 
+        if ( isset($_POST['event_id']) ) 
+        { 
+            $id = (int) $_POST['event_id']; 
+                // Force integer type to sanitize data 
+        } 
+        else 
+        { 
+            $id = NULL; 
+        } 
+        /* 
+         * Instantiate the headline/submit button text 
+         */ 
+        $submit = "Create a New Event"; 
+        /* 
+         * If an ID is passed, loads the associated event 
+         */ 
+        if ( !empty($id) ) 
+        { 
+            $event = $this->_loadEventById($id); 
+            /* 
+             * If no object is returned, return NULL 
+             */ 
+            if ( !is_object($event) ) { return NULL; } 
+            $submit = "Edit This Event"; 
+        }
+     	/* 
+         * Build the markup 
+         */ 
+        return <<<FORM_MARKUP 
+     		<form action="assets/common/process.inc.php" method="post">
+     		<fieldset>
+     			<legend>$submit</legend>
+     			<label for="event_title">Event Title</label>
+     			<input type="text" name="event_title" id="event_title" value="$event->title" />
+     			<label for="event_start">Start Time</label>
+     			<input type="text" name="event_start" id="event_start" value="$event->start" />
+     			<label for="event_end"></label>
+     			<input type="text" name="event_end" id="event_end" value="$event->end" />
+     			<label for="event_description"></label>
+     			<textarea name="event_description" id="event_description" value="$event->description"></textarea>
+     			<input type="hidden" name="event_id" value="$event->id" />
+     			<input type="hidden" name="token" value="$_SESSION[token]" />
+     			<input type="submit" name="action" value="event_edit" />
+     			<input type="submit" name="submit" value="$submit" />
+     			or <a href="./">Cancel</a>
+     			</fieldset>
+     			</form>
+
+
+     		</fieldset>
+     		</form>
+
+     		FORM_MARKUP;
+     	
+     }//display form func ends
 
 
     /** 
@@ -328,44 +428,6 @@
     	*@param int $id the event ID
     	*@return string basic markup to display 
     	*/
-
-    	public function displayEvent($id){
-    		/**
-    		*check if empty return null
-    		*/
-    		if(empty($id)){
-    			return NULL;
-    		}
-    		/**
-    		*Make sure the id is integer
-    		*/
-    		$id = preg_replace('/[^0-9]/', '', $id);
-
-    		/**
-    		*Load the event data
-    		*/
-    		$event = $this->_loadEventById($id);
-
-    		/**
-    		*Generate string for the date start and end time
-    		*/
-    		$ts = strtotime($event->start);
-    		$date = date('F, d, Y', $ts);
-    		$start = date('g:ia', $ts);
-    		$end = date('g:ia', strtotime($event->end));
-
-    		/**
-    		*Generate and return the markeup
-    		*/
-
-    		$html = "<h2>$event->title</h2>";
-    		$html .= "\n\t<p class=\"dates\"> $date, $start &dash;$end</p>";
-    		$html .= "\n\t<p>$event->description</p>";
-    		return $html;
-
-    	}
-
-
 
      }
 

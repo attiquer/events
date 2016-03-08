@@ -1,7 +1,15 @@
 <?php
-/**
-*include db connection file
-*/
+
+	/**
+	*Enable session
+	*/
+	session_start();
+	if(!isset($_SESSION['token']){
+		$_SESSION['token'] = sha1(uniqid(mt_rand(), TRUE));
+	}
+	/**
+	*include db connection file
+	*/
 	require_once('../sys/config/db-cred.inc.php');
 	//require_once('../sys/class/class.calendar.inc.php');
 
