@@ -4,7 +4,7 @@
 	*Enable session
 	*/
 	session_start();
-	if(!isset($_SESSION['token']){
+	if(!isset($_SESSION['token'])){
 		$_SESSION['token'] = sha1(uniqid(mt_rand(), TRUE));
 	}
 	/**
