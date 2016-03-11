@@ -4,7 +4,10 @@
 	*Enable session
 	*/
 	session_start();
-	if(!isset($_SESSION['token']){
+	/**
+	*Generate a CSRF token if one doesn't exist already
+	*/
+	if(!isset($_SESSION['token'])){
 		$_SESSION['token'] = sha1(uniqid(mt_rand(), TRUE));
 	}
 	/**
