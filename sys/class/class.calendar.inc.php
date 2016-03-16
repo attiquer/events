@@ -549,80 +549,80 @@ CONFIRM_DELETE;
         </fieldset>
     </form>
 FORM_MARKUP;
-    }// end of displayForm()
+    }
 
     /**
-    *processes form data
-    *@return success/failure
-    */
-    /** 
-     * Validates the form and saves/edits the event 
-     * 
-     * @return mixed TRUE on success, an error message on failure 
-     */ 
-    public function processForm() 
-    { 
-        /* 
-         * Exit if the action isn't set properly 
-         */ 
-        if ( $_POST['action']!='event_edit' ) 
-        { 
-            return "The method processForm was accessed incorrectly"; 
-        } 
-        /* 
-         * Escape data from the form 
-         */ 
-        $title = htmlentities($_POST['event_title'], ENT_QUOTES); 
-        $desc = htmlentities($_POST['event_description'], ENT_QUOTES); 
-        $start = htmlentities($_POST['event_start'], ENT_QUOTES); 
-        $end = htmlentities($_POST['event_end'], ENT_QUOTES); 
-        /* 
-         * If no event ID passed, create a new event 
-         */ 
-        if ( empty($_POST['event_id']) ) 
-        { 
-            $sql = "INSERT INTO `events` 
-                        (`event_title`, `event_desc`, `event_start`, 
-                            `event_end`) 
-                    VALUES 
-                        (:title, :description, :start, :end)"; 
+     * Validates the form and saves/edits the event
+     *
+     * @return mixed TRUE on success, an error message on failure
+     */
+    public function processForm()
+    {
+        /*
+         * Exit if the action isn't set properly
+         */
+        if ( $_POST['action']!='event_edit' )
+        {
+            return "The method processForm was accessed incorrectly";
         }
-                /* 
-         * Update the event if it's being edited 
-         */ 
-        else 
-        { 
-            /* 
-             * Cast the event ID as an integer for security 
-             */ 
-            $id = (int) $_POST['event_id']; 
-            $sql = "UPDATE `events` 
-                    SET 
-                        `event_title`=:title, 
-                        `event_desc`=:description, 
-                        `event_start`=:start, 
-                        `event_end`=:end 
-                    WHERE `event_id`=$id"; 
-        } 
-        /* 
-         * Execute the create or edit query after binding the data 
-         */ 
-        try 
-        { 
-            $stmt = $this->db->prepare($sql); 
-            $stmt->bindParam(":title", $title, PDO::PARAM_STR); 
-            $stmt->bindParam(":description", $desc, PDO::PARAM_STR); 
-            $stmt->bindParam(":start", $start, PDO::PARAM_STR); 
-            $stmt->bindParam(":end", $end, PDO::PARAM_STR); 
-            $stmt->execute(); 
-            $stmt->closeCursor(); 
-            return TRUE; 
-        } 
-        catch ( Exception $e ) 
-        { 
-            return $e->getMessage(); 
-        } 
-    } // processForm method ends
+
+        /*
+         * Escape data from the form
+         */
+        $title = htmlentities($_POST['event_title'], ENT_QUOTES);
+        $desc = htmlentities($_POST['event_description'], ENT_QUOTES);
+        $start = htmlentities($_POST['event_start'], ENT_QUOTES);
+        $end = htmlentities($_POST['event_end'], ENT_QUOTES);
+
+        /*
+         * If no event ID passed, create a new event
+         */
+        if ( empty($_POST['event_id']) )
+        {
+            $sql = "INSERT INTO `events`
+                        (`event_title`, `event_desc`, `event_start`,
+                            `event_end`)
+                    VALUES
+                        (:title, :description, :start, :end)";
+        }
+
+        /*
+         * Update the event if it's being edited
+         */
+        else
+        {
+            /*
+             * Cast the event ID as an integer for security
+             */
+            $id = (int) $_POST['event_id'];
+            $sql = "UPDATE `events`
+                    SET
+                        `event_title`=:title,
+                        `event_desc`=:description,
+                        `event_start`=:start,
+                        `event_end`=:end
+                    WHERE `event_id`=$id";
+        }
+
+        /*
+         * Execute the create or edit query after binding the data
+         */
+        try
+        {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(":title", $title, PDO::PARAM_STR);
+            $stmt->bindParam(":description", $desc, PDO::PARAM_STR);
+            $stmt->bindParam(":start", $start, PDO::PARAM_STR);
+            $stmt->bindParam(":end", $end, PDO::PARAM_STR);
+            $stmt->execute();
+            $stmt->closeCursor();
+            return TRUE;
+        }
+        catch ( Exception $e )
+        {
+            return $e->getMessage();
+        }
+    }
 
     /**
      * Returns a single event object
