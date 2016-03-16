@@ -328,6 +328,7 @@ CONFIRM_DELETE;
      */
     public function buildCalendar()
     {
+    	$event_info = NULL;
         /*
          * Determine the calendar month and create an array of
          * weekday abbreviations to label the calendar columns
@@ -471,9 +472,9 @@ CONFIRM_DELETE;
         $start = date('g:ia', $ts);
         $end = date('g:ia', strtotime($event->end));
 
-        /*
-         * Load admin options if the user is logged in
-         */
+        /**
+        *load admin options if user logged in
+        */
         $admin = $this->_adminEntryOptions($id);
 
         /*
@@ -482,13 +483,17 @@ CONFIRM_DELETE;
         return "<h2>$event->title</h2>"
             . "\n\t<p class=\"dates\">$date, $start&mdash;$end</p>"
             . "\n\t<p>$event->description</p>$admin";
-    }    /**
+    }    /**display event end
+
      * Generates a form to edit or create events
      *
      * @return string the HTML markup for the editing form
      */
     public function displayForm()
     {
+    	    // Initialize vars
+    		$id = NULL;
+    		$token = '';
         /*
          * Check if an ID was passed
          */
@@ -512,16 +517,23 @@ CONFIRM_DELETE;
         if ( !empty($id) )
         {
             $event = $this->_loadEventById($id);
+            $submit = "Edit This Event";
+        }
 
             /*
              * If no object is returned, return NULL
              */
-            if ( !is_object($event) ) { return NULL; }
-
-            $submit = "Edit This Event";
+            if (empty($id) || !is_object($event) ) { //return NULL;
+            $event = new stdClass();
+            $event->title = '';
+            $event->start = '';
+            $event->end = '';
+            $event->description = '';
+            $event->id = '';
         }
 
-        /*
+            
+         /*
          * Build the markup
          */
         return <<<FORM_MARKUP
@@ -659,52 +671,37 @@ FORM_MARKUP;
     }
 
     /**
-     * Generates markup to display administrative links
-     *
-     * @return string markup to display the administrative links
-     */
-    private function _adminGeneralOptions()
-    {
-        /*
-         * Display admin controls
-         */
-        return <<<ADMIN_OPTIONS
+    *Generate markup to display admin links
+    */
 
-    <a href="admin.php" class="admin">+ Add a New Event</a>
+    private function _adminGeneralOptions(){
+    	return <<<ADMIN_OPTIONS
+    	<a href="admin.php" class="admin">+ Add new event</a>
+
 ADMIN_OPTIONS;
     }
 
     /**
-     * Generates edit and delete options for a given event ID
-     *
-     * @param int $id the event ID to generate options for
-     * @return string the markup for the edit/delete options
-     */
-    private function _adminEntryOptions($id)
-    {
-        return <<<ADMIN_OPTIONS
+    *Generates the edit/delete option for given id
+    */
 
-    <div class="admin-options">
-    <form action="admin.php" method="post">
-        <p>
-            <input type="submit" name="edit_event"
-                  value="Edit This Event" />
-            <input type="hidden" name="event_id"
-                  value="$id" />
-        </p>
-    </form>
-    <form action="confirmdelete.php" method="post">
-        <p>
-            <input type="submit" name="delete_event"
-                  value="Delete This Event" />
-            <input type="hidden" name="event_id"
-                  value="$id" />
-        </p>
-    </form>
-    </div><!-- end .admin-options -->
+    private function _adminEntryOptions($id){
+    	return <<<ADMIN_OPTIONS
+    	<div class="admin-options">
+    	<form action="admin.php" method="post">
+    	<p>
+    	<input type="submit" name="edit_event" value="Edit this event" />
+    	<input type="hidden" name="event_id" value="$id" />
+    	</p>
+    	</form>
+    	</div>
 ADMIN_OPTIONS;
+
     }
 
-}
+
+
+} //class end
+
 
 ?>

@@ -20,7 +20,7 @@
 	*define constants for configuration file through php define function
 	*/
 
-	foreach ($c as $name => $val){
+	foreach ($C as $name => $val){
 	define($name, $val);		
 	}
 

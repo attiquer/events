@@ -11,7 +11,7 @@ $cal = new Calendar($dbo, "2010-01-01 00:00:00");
  * Set up the page title and CSS files 
  */ 
 $page_title = "Events Calendar"; 
-$css_files = array('styles.css'); 
+$css_files = array('styles.css', 'admin.css'); 
 /* 
  * Include the header 
  */ 
