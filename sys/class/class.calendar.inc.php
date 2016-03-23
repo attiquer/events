@@ -113,106 +113,103 @@ class Calendar extends DB_Connect
         $this->_startDay = date('w', $ts);
     }
 
-    /**
-     * Confirms that an event should be deleted and does so
-     *
-     * Upon clicking the button to delete an event, this
-     * generates a confirmation box. If the user confirms,
-     * this deletes the event from the database and sends the
-     * user back out to the main calendar view. If the user
-     * decides not to delete the event, they're sent back to
-     * the main calendar view without deleting anything.
-     *
-     * @param int $id the event ID
-     * @return mixed the form if confirming, void or error if deleting
-     */
-    public function confirmDelete($id)
-    {
-        /*
-         * Make sure an ID was passed
-         */
-        if ( empty($id) ) { return NULL; }
+/**
+*confirms that an event should be deleted
+*
+*@param int $id the event id
+*@return mixed the form if confirmed, void or error if deleting
+*/
 
-        /*
-         * Make sure the ID is an integer
-         */
-        $id = preg_replace('/[^0-9]/', '', $id);
+    /** 
+     * Confirms that an event should be deleted and does so 
+     * 
+     * Upon clicking the button to delete an event, this 
+     * generates a confirmation box. If the user confirms, 
+     * this deletes the event from the database and sends the 
+     * user back out to the main calendar view. If the user 
+     * decides not to delete the event, they're sent back to 
+     * the main calendar view without deleting anything. 
+     * 
+     * @param int $id the event ID 
+     * @return mixed the form if confirming, void or error if deleting 
+     */ 
+    public function confirmDelete($id) 
+    { 
+        /* 
+         * Make sure an ID was passed 
+         */ 
+        if ( empty($id) ) { return NULL; } 
+        /* 
+         * Make sure the ID is an integer 
+         */ 
+        $id = preg_replace('/[^0-9]/', '', $id); 
+        /* 
+         * If the confirmation form was submitted and the form 
+         * has a valid token, check the form submission 
+         */ 
+        if ( isset($_POST['confirm_delete']) )
+        { 
+            /* 
+             * If the deletion is confirmed, remove the event 
+             * from the database 
+             */ 
+            if ( $_POST['confirm_delete']=="Yes, Delete It" ) 
+            { 
+                $sql = "DELETE FROM `events` 
+                        WHERE `event_id`=:id MIT 1"; 
+                try 
+                { 
+                    $stmt = $this->db->prepare($sql); 
+                    $stmt->bindParam( 
+                          ":id", 
+                          $id, 
+                          PDO::PARAM_INT 
+                        ); 
+                    $stmt->execute(); 
+                    $stmt->closeCursor(); 
+                    header("Location: ./"); 
+                    return; 
+                } 
+                catch ( Exception $e ) 
+                { 
+                    return $e->getMessage(); 
+                } 
+            } 
+            /* 
+             * If not confirmed, sends the user to the main view 
+             */ 
+            else 
+            { 
+                header("Location: ./"); 
+                return; 
+            } 
+        } 
+        /* 
+         * If the confirmation form hasn't been submitted, display it 
+         */ 
+        $event = $this->_loadEventById($id); 
+        /* 
+         * If no object is returned, return to the main view 
+         */ 
+        if ( !is_object($event) ) { header("Location: ./"); } 
 
-        /*
-         * If the confirmation form was submitted and the form
-         * has a valid token, check the form submission
-         */
-        if ( isset($_POST['confirm_delete'])
-                && $_POST['token']==$_SESSION['token'] )
-        {
-            /*
-             * If the deletion is confirmed, remove the event
-             * from the database
-             */
-            if ( $_POST['confirm_delete']=="Yes, Delete It" )
-            {
-                $sql = "DELETE FROM `events`
-                        WHERE `event_id`=:id
-                        LIMIT 1";
-                try
-                {
-                    $stmt = $this->db->prepare($sql);
-                    $stmt->bindParam(
-                          ":id",
-                          $id,
-                          PDO::PARAM_INT
-                        );
-                    $stmt->execute();
-                    $stmt->closeCursor();
-                    header("Location: ./");
-                    return;
-                }
-                catch ( Exception $e )
-                {
-                    return $e->getMessage();
-                }
-            }
-
-            /*
-             * If not confirmed, sends the user to the main view
-             */
-            else
-            {
-                header("Location: ./");
-                return;
-            }
-        }
-
-        /*
-         * If the confirmation form hasn't been submitted, display it
-         */
-        $event = $this->_loadEventById($id);
-
-        /*
-         * If no object is returned, return to the main view
-         */
-        if ( !is_object($event) ) { header("Location: ./"); }
-
-        return <<<CONFIRM_DELETE
-
-    <form action="confirmdelete.php" method="post">
-        <h2>
-            Are you sure you want to delete "$event->title"?
-        </h2>
-        <p>There is <strong>no undo</strong> if you continue.</p>
-        <p>
-            <input type="submit" name="confirm_delete"
-                  value="Yes, Delete It" />
-            <input type="submit" name="confirm_delete"
-                  value="Nope! Just Kidding!" />
-            <input type="hidden" name="event_id"
-                  value="$event->id" />
-            <input type="hidden" name="token"
-                  value="$_SESSION[token]" />
-        </p>
-    </form>
+return <<<CONFIRM_DELETE
+    <form action="confirmdelete.php" method="post"> 
+        <h2> 
+            Are you sure you want to delete "$event->title"? 
+        </h2> 
+        <p>There is <strong>no undo</strong> if you continue.</p> 
+        <p> 
+            <input type="submit" name="confirm_delete" value="Yes, Delete It" /> 
+            <input type="submit" name="confirm_delete" value="Nope! Just Kidding!" />
+            <input type="hidden" name="event_id" 
+                  value="$event->id" /> 
+            <input type="hidden" name="token" 
+                  value="$_SESSION[token]" /> 
+        </p> 
+    </form> 
 CONFIRM_DELETE;
-    }
+    } // confirm delete ends
 
     /**
      * Loads event(s) info into an array
@@ -691,17 +688,19 @@ ADMIN_OPTIONS;
     	<form action="admin.php" method="post">
     	<p>
     	<input type="submit" name="edit_event" value="Edit this event" />
+
     	<input type="hidden" name="event_id" value="$id" />
     	</p>
     	</form>
+
+    	<form action="confirmdelete.php" method="post">
+    	<input type="submit" name="delete_event" value="Delete this event" />
+    	<input type="hidden" name="event_id" value="$id" />
     	</div>
 ADMIN_OPTIONS;
 
     }
 
-
-
 } //class end
-
 
 ?>

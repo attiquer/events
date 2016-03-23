@@ -49,7 +49,8 @@ else
     // Redirect to the main index if the token/action is invalid 
     header("Location: ../../"); 
     exit; 
-} 
+}
+ 
 function __autoload($class_name) 
 { 
     $filename = '../../../sys/class/class.' 

@@ -31,7 +31,7 @@ include_once('../sys/core/init.inc.php');
 *output the calendar
 */
 $page_title = "View Calendar";
-$css_files = array("styles.css");
+$css_files = array("styles.css", "admin.css");
 include_once('assets/common/header.inc.php');
 
 /**
