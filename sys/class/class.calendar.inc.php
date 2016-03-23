@@ -142,21 +142,22 @@ class Calendar extends DB_Connect
         /* 
          * Make sure the ID is an integer 
          */ 
-        $id = preg_replace('/[^0-9]/', '', $id); 
+        $id = preg_replace('/[^0-9]/', '', $id);
         /* 
          * If the confirmation form was submitted and the form 
          * has a valid token, check the form submission 
          */ 
         if ( isset($_POST['confirm_delete']) )
         { 
-            /* 
+        	 /* 
              * If the deletion is confirmed, remove the event 
              * from the database 
              */ 
             if ( $_POST['confirm_delete']=="Yes, Delete It" ) 
             { 
+            	
                 $sql = "DELETE FROM `events` 
-                        WHERE `event_id`=:id MIT 1"; 
+                        WHERE `event_id`=:id LIMIT 1"; 
                 try 
                 { 
                     $stmt = $this->db->prepare($sql); 
