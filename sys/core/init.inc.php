@@ -4,6 +4,10 @@
 	*Enable session
 	*/
 	session_start();
+	/**
+	*Generate a CSRF token if one doesn't exist already
+	*/
+
 	if(!isset($_SESSION['token'])){
 		$_SESSION['token'] = sha1(uniqid(mt_rand(), TRUE));
 	}
@@ -17,7 +21,7 @@
 	*define constants for configuration file through php define function
 	*/
 
-	foreach ($c as $name => $val){
+	foreach ($C as $name => $val){
 	define($name, $val);		
 	}
 

@@ -113,104 +113,106 @@ class Calendar extends DB_Connect
         $this->_startDay = date('w', $ts);
     }
 
-/**
-*confirms that an event should be deleted
-*
-*@param int $id the event id
-*@return mixed the form if confirmed, void or error if deleting
-*/
+    /**
+     * Confirms that an event should be deleted and does so
+     *
+     * Upon clicking the button to delete an event, this
+     * generates a confirmation box. If the user confirms,
+     * this deletes the event from the database and sends the
+     * user back out to the main calendar view. If the user
+     * decides not to delete the event, they're sent back to
+     * the main calendar view without deleting anything.
+     *
+     * @param int $id the event ID
+     * @return mixed the form if confirming, void or error if deleting
+     */
+    public function confirmDelete($id)
+    {
+        /*
+         * Make sure an ID was passed
+         */
+        if ( empty($id) ) { return NULL; }
 
-    /** 
-     * Confirms that an event should be deleted and does so 
-     * 
-     * Upon clicking the button to delete an event, this 
-     * generates a confirmation box. If the user confirms, 
-     * this deletes the event from the database and sends the 
-     * user back out to the main calendar view. If the user 
-     * decides not to delete the event, they're sent back to 
-     * the main calendar view without deleting anything. 
-     * 
-     * @param int $id the event ID 
-     * @return mixed the form if confirming, void or error if deleting 
-     */ 
-    public function confirmDelete($id) 
-    { 
-        /* 
-         * Make sure an ID was passed 
-         */ 
-        if ( empty($id) ) { return NULL; } 
-        /* 
-         * Make sure the ID is an integer 
-         */ 
+        /*
+         * Make sure the ID is an integer
+         */
         $id = preg_replace('/[^0-9]/', '', $id);
-        /* 
-         * If the confirmation form was submitted and the form 
-         * has a valid token, check the form submission 
-         */ 
-        if ( isset($_POST['confirm_delete']) )
-        { 
-        	 /* 
-             * If the deletion is confirmed, remove the event 
-             * from the database 
-             */ 
-            if ( $_POST['confirm_delete']=="Yes, Delete It" ) 
-            { 
-            	
-                $sql = "DELETE FROM `events` 
-                        WHERE `event_id`=:id LIMIT 1"; 
-                try 
-                { 
-                    $stmt = $this->db->prepare($sql); 
-                    $stmt->bindParam( 
-                          ":id", 
-                          $id, 
-                          PDO::PARAM_INT 
-                        ); 
-                    $stmt->execute(); 
-                    $stmt->closeCursor(); 
-                    header("Location: ./"); 
-                    return; 
-                } 
-                catch ( Exception $e ) 
-                { 
-                    return $e->getMessage(); 
-                } 
-            } 
-            /* 
-             * If not confirmed, sends the user to the main view 
-             */ 
-            else 
-            { 
-                header("Location: ./"); 
-                return; 
-            } 
-        } 
-        /* 
-         * If the confirmation form hasn't been submitted, display it 
-         */ 
-        $event = $this->_loadEventById($id); 
-        /* 
-         * If no object is returned, return to the main view 
-         */ 
-        if ( !is_object($event) ) { header("Location: ./"); } 
 
-return <<<CONFIRM_DELETE
-    <form action="confirmdelete.php" method="post"> 
-        <h2> 
-            Are you sure you want to delete "$event->title"? 
-        </h2> 
-        <p>There is <strong>no undo</strong> if you continue.</p> 
-        <p> 
-            <input type="submit" name="confirm_delete" value="Yes, Delete It" /> 
-            <input type="submit" name="confirm_delete" value="Nope! Just Kidding!" />
-            <input type="hidden" name="event_id" 
-                  value="$event->id" /> 
-            <input type="hidden" name="token" 
-                  value="$_SESSION[token]" /> 
-        </p> 
-    </form> 
+        /*
+         * If the confirmation form was submitted and the form
+         * has a valid token, check the form submission
+         */
+        if ( isset($_POST['confirm_delete'])
+                && $_POST['token']==$_SESSION['token'] )
+        {
+            /*
+             * If the deletion is confirmed, remove the event
+             * from the database
+             */
+            if ( $_POST['confirm_delete']=="Yes, Delete It" )
+            {
+                $sql = "DELETE FROM `events`
+                        WHERE `event_id`=:id
+                        LIMIT 1";
+                try
+                {
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->bindParam(
+                          ":id",
+                          $id,
+                          PDO::PARAM_INT
+                        );
+                    $stmt->execute();
+                    $stmt->closeCursor();
+                    header("Location: ./");
+                    return;
+                }
+                catch ( Exception $e )
+                {
+                    return $e->getMessage();
+                }
+            }
+
+            /*
+             * If not confirmed, sends the user to the main view
+             */
+            else
+            {
+                header("Location: ./");
+                return;
+            }
+        }
+
+        /*
+         * If the confirmation form hasn't been submitted, display it
+         */
+        $event = $this->_loadEventById($id);
+
+        /*
+         * If no object is returned, return to the main view
+         */
+        if ( !is_object($event) ) { header("Location: ./"); }
+
+        return <<<CONFIRM_DELETE
+
+    <form action="confirmdelete.php" method="post">
+        <h2>
+            Are you sure you want to delete "$event->title"?
+        </h2>
+        <p>There is <strong>no undo</strong> if you continue.</p>
+        <p>
+            <input type="submit" name="confirm_delete"
+                  value="Yes, Delete It" />
+            <input type="submit" name="confirm_delete"
+                  value="Nope! Just Kidding!" />
+            <input type="hidden" name="event_id"
+                  value="$event->id" />
+            <input type="hidden" name="token"
+                  value="$_SESSION[token]" />
+        </p>
+    </form>
 CONFIRM_DELETE;
-    } // confirm delete ends
+    }
 
     /**
      * Loads event(s) info into an array
@@ -326,7 +328,6 @@ CONFIRM_DELETE;
      */
     public function buildCalendar()
     {
-    	$event_info = NULL;
         /*
          * Determine the calendar month and create an array of
          * weekday abbreviations to label the calendar columns
@@ -470,9 +471,9 @@ CONFIRM_DELETE;
         $start = date('g:ia', $ts);
         $end = date('g:ia', strtotime($event->end));
 
-        /**
-        *load admin options if user logged in
-        */
+        /*
+         * Load admin options if the user is logged in
+         */
         $admin = $this->_adminEntryOptions($id);
 
         /*
@@ -481,17 +482,13 @@ CONFIRM_DELETE;
         return "<h2>$event->title</h2>"
             . "\n\t<p class=\"dates\">$date, $start&mdash;$end</p>"
             . "\n\t<p>$event->description</p>$admin";
-    }    /**display event end
-
+    }    /**
      * Generates a form to edit or create events
      *
      * @return string the HTML markup for the editing form
      */
     public function displayForm()
     {
-    	    // Initialize vars
-    		$id = NULL;
-    		$token = '';
         /*
          * Check if an ID was passed
          */
@@ -515,23 +512,16 @@ CONFIRM_DELETE;
         if ( !empty($id) )
         {
             $event = $this->_loadEventById($id);
-            $submit = "Edit This Event";
-        }
 
             /*
              * If no object is returned, return NULL
              */
-            if (empty($id) || !is_object($event) ) { //return NULL;
-            $event = new stdClass();
-            $event->title = '';
-            $event->start = '';
-            $event->end = '';
-            $event->description = '';
-            $event->id = '';
+            if ( !is_object($event) ) { return NULL; }
+
+            $submit = "Edit This Event";
         }
 
-            
-         /*
+        /*
          * Build the markup
          */
         return <<<FORM_MARKUP
@@ -559,80 +549,80 @@ CONFIRM_DELETE;
         </fieldset>
     </form>
 FORM_MARKUP;
-    }
+    }// end of displayForm()
 
     /**
-     * Validates the form and saves/edits the event
-     *
-     * @return mixed TRUE on success, an error message on failure
-     */
-    public function processForm()
-    {
-        /*
-         * Exit if the action isn't set properly
-         */
-        if ( $_POST['action']!='event_edit' )
-        {
-            return "The method processForm was accessed incorrectly";
+    *processes form data
+    *@return success/failure
+    */
+    /** 
+     * Validates the form and saves/edits the event 
+     * 
+     * @return mixed TRUE on success, an error message on failure 
+     */ 
+    public function processForm() 
+    { 
+        /* 
+         * Exit if the action isn't set properly 
+         */ 
+        if ( $_POST['action']!='event_edit' ) 
+        { 
+            return "The method processForm was accessed incorrectly"; 
+        } 
+        /* 
+         * Escape data from the form 
+         */ 
+        $title = htmlentities($_POST['event_title'], ENT_QUOTES); 
+        $desc = htmlentities($_POST['event_description'], ENT_QUOTES); 
+        $start = htmlentities($_POST['event_start'], ENT_QUOTES); 
+        $end = htmlentities($_POST['event_end'], ENT_QUOTES); 
+        /* 
+         * If no event ID passed, create a new event 
+         */ 
+        if ( empty($_POST['event_id']) ) 
+        { 
+            $sql = "INSERT INTO `events` 
+                        (`event_title`, `event_desc`, `event_start`, 
+                            `event_end`) 
+                    VALUES 
+                        (:title, :description, :start, :end)"; 
         }
-
-        /*
-         * Escape data from the form
-         */
-        $title = htmlentities($_POST['event_title'], ENT_QUOTES);
-        $desc = htmlentities($_POST['event_description'], ENT_QUOTES);
-        $start = htmlentities($_POST['event_start'], ENT_QUOTES);
-        $end = htmlentities($_POST['event_end'], ENT_QUOTES);
-
-        /*
-         * If no event ID passed, create a new event
-         */
-        if ( empty($_POST['event_id']) )
-        {
-            $sql = "INSERT INTO `events`
-                        (`event_title`, `event_desc`, `event_start`,
-                            `event_end`)
-                    VALUES
-                        (:title, :description, :start, :end)";
-        }
-
-        /*
-         * Update the event if it's being edited
-         */
-        else
-        {
-            /*
-             * Cast the event ID as an integer for security
-             */
-            $id = (int) $_POST['event_id'];
-            $sql = "UPDATE `events`
-                    SET
-                        `event_title`=:title,
-                        `event_desc`=:description,
-                        `event_start`=:start,
-                        `event_end`=:end
-                    WHERE `event_id`=$id";
-        }
-
-        /*
-         * Execute the create or edit query after binding the data
-         */
-        try
-        {
-            $stmt = $this->db->prepare($sql);
-            $stmt->bindParam(":title", $title, PDO::PARAM_STR);
-            $stmt->bindParam(":description", $desc, PDO::PARAM_STR);
-            $stmt->bindParam(":start", $start, PDO::PARAM_STR);
-            $stmt->bindParam(":end", $end, PDO::PARAM_STR);
-            $stmt->execute();
-            $stmt->closeCursor();
-            return TRUE;
-        }
-        catch ( Exception $e )
-        {
-            return $e->getMessage();
-        }
-    }
+                /* 
+         * Update the event if it's being edited 
+         */ 
+        else 
+        { 
+            /* 
+             * Cast the event ID as an integer for security 
+             */ 
+            $id = (int) $_POST['event_id']; 
+            $sql = "UPDATE `events` 
+                    SET 
+                        `event_title`=:title, 
+                        `event_desc`=:description, 
+                        `event_start`=:start, 
+                        `event_end`=:end 
+                    WHERE `event_id`=$id"; 
+        } 
+        /* 
+         * Execute the create or edit query after binding the data 
+         */ 
+        try 
+        { 
+            $stmt = $this->db->prepare($sql); 
+            $stmt->bindParam(":title", $title, PDO::PARAM_STR); 
+            $stmt->bindParam(":description", $desc, PDO::PARAM_STR); 
+            $stmt->bindParam(":start", $start, PDO::PARAM_STR); 
+            $stmt->bindParam(":end", $end, PDO::PARAM_STR); 
+            $stmt->execute(); 
+            $stmt->closeCursor(); 
+            return TRUE; 
+        } 
+        catch ( Exception $e ) 
+        { 
+            return $e->getMessage(); 
+        } 
+    } // processForm method ends
 
     /**
      * Returns a single event object
@@ -669,66 +659,52 @@ FORM_MARKUP;
     }
 
     /**
-    *Generate markup to display admin links
-    */
-
+     * Generates markup to display administrative links
+     *
+     * @return string markup to display the administrative links
+     */
     private function _adminGeneralOptions()
     {
-        /**
-         * if the user is logged in, show admin options
+        /*
+         * Display admin controls
          */
-        if (isset($_SESSION['user']))
-        {
-            return <<<ADMIN_OPTIONS
-    	<a href="admin.php" class="admin">+ Add new event</a>
+        return <<<ADMIN_OPTIONS
 
-    	<form action="assets/inc/process.inc.php" method="post">
-    	    	<div>
-    	    	<input type="submit" class="admin" value="Logout" />
-    	    	<input type="hidden" value="$_SESSION[token]" name="token" />
-    	    	<input type="hidden" value="user_logout" name="action" />
-    	    	</div>
-    	</form>
+    <a href="admin.php" class="admin">+ Add a New Event</a>
 ADMIN_OPTIONS;
-        }
-
-        else
-        {
-            return <<<ADMIN_OPTIONS
-            <a href="login.php" class="admin">Log In</a>
-ADMIN_OPTIONS;
-        }
     }
 
     /**
-    *Generates the edit/delete option for given id
-    */
+     * Generates edit and delete options for a given event ID
+     *
+     * @param int $id the event ID to generate options for
+     * @return string the markup for the edit/delete options
+     */
+    private function _adminEntryOptions($id)
+    {
+        return <<<ADMIN_OPTIONS
 
-    private function _adminEntryOptions($id){
-        if(isset($_SESSION['user'])) {
-            return <<<ADMIN_OPTIONS
-    	<div class="admin-options">
-    	<form action="admin.php" method="post">
-    	<p>
-    	<input type="submit" name="edit_event" value="Edit this event" />
-
-    	<input type="hidden" name="event_id" value="$id" />
-    	</p>
-    	</form>
-
-    	<form action="confirmdelete.php" method="post">
-    	<input type="submit" name="delete_event" value="Delete this event" />
-    	<input type="hidden" name="event_id" value="$id" />
-    	</div>
+    <div class="admin-options">
+    <form action="admin.php" method="post">
+        <p>
+            <input type="submit" name="edit_event"
+                  value="Edit This Event" />
+            <input type="hidden" name="event_id"
+                  value="$id" />
+        </p>
+    </form>
+    <form action="confirmdelete.php" method="post">
+        <p>
+            <input type="submit" name="delete_event"
+                  value="Delete This Event" />
+            <input type="hidden" name="event_id"
+                  value="$id" />
+        </p>
+    </form>
+    </div><!-- end .admin-options -->
 ADMIN_OPTIONS;
-        }
-        else
-        {
-            return NULL;
-        }
-
     }
 
-} //class end
+}
 
 ?>
