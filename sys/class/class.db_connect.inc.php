@@ -26,11 +26,11 @@ class DB_Connect {
      *
      * @param object $dbo A database object
      */
-    protected function __construct($dbo=NULL)
+    protected function __construct($db=NULL)
     {
         if ( is_object($this->db) )
         {
-            $this->db = $dbo;
+            $this->db = $db;
         }
         else
         {

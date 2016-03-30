@@ -6,7 +6,7 @@ session_start();
 /*
 * Include necessary files
 */
-include_once '../../../sys/config/db-cred.inc.php';
+require_once '../../../sys/config/db-cred.inc.php';
 /*
 * Define constants for config info
 */
@@ -27,6 +27,7 @@ $actions = array(
 * Make sure the anti-CSRF token was passed and that the
 * requested action exists in the lookup array
 */
+$dbo = NULL;
 if ( isset($actions[$_POST['action']]) )
 {
     $use_array = $actions[$_POST['action']];
